@@ -1,0 +1,27 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports: ["127.0.0.1:6333:6333"]
+    volumes: ["qdrant_data:/qdrant/storage"]
+    restart: unless-stopped
+  api:
+    build: .
+    environment:
+      OLLAMA_URL: http://host.docker.internal:11434
+      QDRANT_URL: http://qdrant:6333
+      DATABASE_PATH: /state/ledger.sqlite3
+      ALPACA_PAPER_KEY_ID: ${ALPACA_PAPER_KEY_ID:-}
+      ALPACA_PAPER_SECRET_KEY: ${ALPACA_PAPER_SECRET_KEY:-}
+      NEWSAPI_KEY: ${NEWSAPI_KEY:-}
+      APPROVAL_CODE: ${APPROVAL_CODE:?Set a local approval code in .env}
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: ["ledger_data:/state"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on: [qdrant]
+    restart: unless-stopped
+volumes:
+  qdrant_data:
+  ledger_data:
+
+
